@@ -315,6 +315,7 @@ def list(category, month_year):
             str(despesa.get("valor")), despesa.get("categoria"),
         )
         Total += despesa.get("valor")
+    tabela.add_section()
     tabela.add_row("TOTAL", "", "", f"{Total:.2f}", "")
 
     console.print(tabela)
