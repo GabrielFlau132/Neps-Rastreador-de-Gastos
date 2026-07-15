@@ -55,12 +55,13 @@ def carregar_despesas():
         with open(CSV_PATH, mode="r", newline="", encoding="utf-8") as arquivo:
             leitor = csv.DictReader(arquivo)
             for linha in leitor:
+                linha_normalizada = {k.strip().lower(): v for k, v in linha.items()}
                 despesas.append({
-                    "id": int(linha["id"]),
-                    "data": linha["data"],
-                    "descricao": linha["descricao"],
-                    "valor": float(linha["valor"]),
-                    "categoria": linha["categoria"],
+                    "id": int(linha_normalizada["id"]),
+                    "data": linha_normalizada["data"],
+                    "descricao": linha_normalizada["descricao"],
+                    "valor": float(linha_normalizada["valor"]),
+                    "categoria": linha_normalizada["categoria"],
                 })
             if despesas:
                 ID = max(d["id"] for d in despesas) + 1
@@ -127,9 +128,16 @@ def add(data, descricao, valor):
             data = click.prompt('Data (DD/MM/YYYY)', type=str)
 
     # Validação do valor
-    while float(valor) <= 0:
-        click.echo('O valor deve ser um número positivo.')
-        valor = click.prompt('Valor', type=float)
+    while True:
+        try:
+            if float(valor) <= 0:
+                click.echo('O valor deve ser um número positivo.')
+                valor = click.prompt('Valor', type=str)
+                continue
+            break
+        except ValueError:
+            click.echo('Valor inválido! Digite um número.')
+            valor = click.prompt('Valor', type=str)
 
     # Seleção da categoria
     tabela = Table(title="Escolha a categoria:")
@@ -192,7 +200,7 @@ def edit(idedit):
     # Descrição
     nova_descricao = click.prompt(
         f"Descrição atual: {despesa['descricao']}. Digite a nova descrição ou pressione Enter para manter",
-        default=despesa["data"], show_default=False,
+        default=despesa["descricao"], show_default=False,
     )
 
     # Valor
@@ -220,11 +228,15 @@ def edit(idedit):
         tabela.add_row(str(numero), nome)
     console.print(tabela)
 
-    categoria_input = click.prompt("Digite o número correspondente", default=despesa["categoria"], show_default=False)
-    if categoria_input.isdigit() and int(categoria_input) in CATEGORIAS_DICT:
-        nova_categoria = CATEGORIAS_DICT[int(categoria_input)]
-    else:
-        nova_categoria = despesa["categoria"]
+    while True:
+        categoria_input = click.prompt("Digite o número correspondente", default=despesa["categoria"], show_default=False)
+        if categoria_input == despesa["categoria"]:
+            nova_categoria = despesa["categoria"]
+            break
+        if categoria_input.isdigit() and int(categoria_input) in CATEGORIAS_DICT:
+            nova_categoria = CATEGORIAS_DICT[int(categoria_input)]
+            break
+        click.echo("Categoria inválida! Digite um número da tabela acima.")
 
     # Aplica as mudanças e persiste
     despesa["data"] = nova_data
@@ -348,6 +360,8 @@ def resume(mes):
         percentual = (val / total) * 100 if total > 0 else 0
         if val > 0:
             tabela.add_row(categoria, f"R$ {val:.2f}", f"{percentual:.2f}%")
+
+    tabela.add_row("TOTAL GERAL", f"R$ {total:.2f}", "100.00%" if total > 0 else "0.00%")
 
     console.print(tabela)
 
