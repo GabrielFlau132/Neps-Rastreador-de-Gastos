@@ -202,3 +202,9 @@ O cabeçalho é aceito em maiúsculas ou minúsculas na leitura, mas sempre regr
 ## 📄 Licença
 
 Uso livre para fins de estudo e portfólio.
+
+---
+
+## 📚 Créditos
+
+Projeto do curso **Python Mastery Bootcamp** — [Neps Academy](https://neps.academy).
